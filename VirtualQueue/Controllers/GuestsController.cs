@@ -60,6 +60,9 @@ namespace VirtualQueue.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "bookingID,guestName,email,contact_no,groupSize,persist,isVIP,status,entry,waiting,pending")] Guest guest)
         {
+            mailstatus = false;
+            string m = "Welcome to "+HttpContext.Application["EventName"]+"! You're all checked in. Once it's your turn you'll receive another message letting you know.";
+            bool smsstatus = false;
             if (ModelState.IsValid)
             {
                 if(guest.contact_no=="" && guest.email=="")
@@ -69,17 +72,43 @@ namespace VirtualQueue.Controllers
                 }
                 else
                 {
-                    guest.status = "Waiting";
-                    guest.entry = DateTime.Now;
-                    guest.waiting = DateTime.Now;
-                    guest.pending = DateTime.Now;
-                    db.Guests.Add(guest);
-                    db.SaveChanges();
-                    return RedirectToAction("Index");
+                    if (guest.email != null && guest.email != "")
+                    {
+                        Debug.WriteLine("Before mail sent.");
+                        sendmail(guest, m);
+                        //gayo k nai a kai rite check karisu?Apde response debug ma print karye ha okay
+                        Debug.WriteLine("After mail sent.");
+                    }
+                    if (guest.contact_no != null && guest.contact_no != "")
+                    {
+                        if (sendSMS(guest, m) == true)
+                        {
+                            smsstatus = true;
+                            HttpContext.Application["MessageCount"] = (Convert.ToInt32(HttpContext.Application["MessageCount"].ToString()) + 1).ToString();
+                            ProjectConfig c = db.ProjectConfigs.FirstOrDefault(x => x.att_key == "MessageCount");
+                            c.att_val = HttpContext.Application["MessageCount"].ToString();
+                            db.SaveChanges();
+                        }
+                    }
+                    if (mailstatus == true || smsstatus == true)
+                    {
+                        guest.status = "Waiting";
+                        guest.entry = DateTime.Now;
+                        guest.waiting = DateTime.Now;
+                        guest.pending = DateTime.Now;
+                        db.Guests.Add(guest);
+                        db.SaveChanges();
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        ViewBag.errmsg = "Failed to send email or sms.Try again.";
+                        return View("Error");
+                    }
+                    
                 }
                 
             }
-
             return View(guest);
         }
 
@@ -96,7 +125,8 @@ namespace VirtualQueue.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult AdmitToPendingLists(long id)
         {
-            
+            mailstatus = false;
+            string m = "It's your turn to enter "+HttpContext.Application["EventName"]+"! Please bring this message to the ticket booth. Enjoy the haunt!";
             bool smsstatus=false;
             if( Session["User"]!=null)
             {
@@ -106,13 +136,13 @@ namespace VirtualQueue.Controllers
                     if (g.email != null && g.email != "")
                     {
                         Debug.WriteLine("Before mail sent.");
-                        sendmail(g);
+                        sendmail(g,m);
                         //gayo k nai a kai rite check karisu?Apde response debug ma print karye ha okay
                         Debug.WriteLine("After mail sent.");
                     }
                     if (g.contact_no!=null && g.contact_no!="")
                     {
-                        if (sendSMS(g)==true)
+                        if (sendSMS(g,m)==true)
                         {
                             smsstatus = true;
                             HttpContext.Application["MessageCount"]=(Convert.ToInt32(HttpContext.Application["MessageCount"].ToString())+1).ToString();
@@ -150,7 +180,7 @@ namespace VirtualQueue.Controllers
         }
 
         [NonAction]
-        public bool sendSMS(Guest g)
+        public bool sendSMS(Guest g,string m)
         {
             try
             {
@@ -158,8 +188,7 @@ namespace VirtualQueue.Controllers
                                     HttpContext.Application["SecretKey"].ToString());
 
                 var message = MessageResource.Create(
-                    body: "It's your turn to enter the " + HttpContext.Application["EventName"].ToString() +              
-                    "! Please bring this message to the ticket booth. Enjoy the haunt!",
+                    body: m,
                     from: new Twilio.Types.PhoneNumber(HttpContext.Application["MobileNo"].ToString()),
                     to: new Twilio.Types.PhoneNumber(g.contact_no)
                 );
@@ -184,7 +213,7 @@ namespace VirtualQueue.Controllers
 
 
         [NonAction]
-        public void sendmail(Guest g)
+        public void sendmail(Guest g,string m)
         {
             //var body = "<p><b> Dear {0}, </b></p><br><p>" +
             //"It's your turn to enter the " + HttpContext.Application["EventName"].ToString() +
@@ -228,12 +257,10 @@ namespace VirtualQueue.Controllers
 
             var client = new SendGridClient(HttpContext.Application["SendGridAPIKey"].ToString());
             var from = new EmailAddress(HttpContext.Application["Email"].ToString(), HttpContext.Application["CompanyName"].ToString());
-            var subject = "Alert from "+HttpContext.Application["CompanyName"].ToString()+" (#"+g.bookingID.ToString()+" ) ";
+            var subject = "Alert from "+HttpContext.Application["CompanyName"].ToString();
             var to = new EmailAddress(g.email, g.guestName);
             var htmlContent = "";
-            var plainTextContent = "Dear "+ g.guestName+",\n" +
-                                "It's your turn to enter the " + HttpContext.Application["EventName"].ToString() +
-                                "! Please bring this message to the ticket booth. Enjoy the haunt!\nThank You";
+            var plainTextContent =m;
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
             Debug.WriteLine("Before sending mail");
             var response =client.SendEmailAsync(msg);
@@ -258,24 +285,51 @@ namespace VirtualQueue.Controllers
 
         public ActionResult Arrived(long id)
         {
+            mailstatus = false;
+            string m = "Thanks for visiting "+HttpContext.Application["EventName"].ToString()+"! We hope you enjoyed.";
+            bool smsstatus=false;
             if(Session["User"]!=null)
             {
 
                 Guest g = db.Guests.FirstOrDefault(x=>x.bookingID==id);
                 if (g != null)
                 {
-                    if (g.persist == false)
+                    if (g.email != null && g.email != "")
                     {
-                        db.Guests.Remove(g);
-                     
+                        Debug.WriteLine("Before mail sent.");
+                        sendmail(g,m);
+                        //gayo k nai a kai rite check karisu?Apde response debug ma print karye ha okay
+                        Debug.WriteLine("After mail sent.");
+                    }
+                    if (g.contact_no != null && g.contact_no != "")
+                    {
+                        if (sendSMS(g,m) == true)
+                        {
+                            smsstatus = true;
+                            db.SaveChanges();
+                        }
+                    }
+                    if (mailstatus == true || smsstatus == true)
+                    {
+                        if (g.persist == false)
+                        {
+                            db.Guests.Remove(g);
+
+                        }
+                        else
+                        {
+                            g.status = "Arrived";
+                            g.pending = DateTime.Now;
+
+                        }
+                        db.SaveChanges();
                     }
                     else
                     {
-                        g.status = "Arrived";
-                        g.pending = DateTime.Now;
-
+                        ViewBag.errmsg = "Failed to send email or sms.Try again.";
+                        return View("Error");
                     }
-                    db.SaveChanges();
+                    
                     return View(g);
                 }
                 else

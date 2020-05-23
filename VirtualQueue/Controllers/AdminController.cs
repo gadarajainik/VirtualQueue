@@ -152,17 +152,20 @@ namespace VirtualQueue.Controllers
                         HttpContext.Application["SecretKey"] = secretkeytb;
                         HttpContext.Application["MobileNo"] = mobiletb;
                         HttpContext.Application["SendGridAPIKey"] = sendgridtb;
+                        HttpContext.Application["MessageCount"] = "0";
 
-                        ProjectConfig sid, secretkey, mobile,sendgrid;
+                        ProjectConfig sid, secretkey, mobile,sendgrid,messagecount;
                         sid = db.ProjectConfigs.FirstOrDefault(x=>x.att_key=="SID");
                         secretkey = db.ProjectConfigs.FirstOrDefault(x => x.att_key == "SecretKey");
                         mobile = db.ProjectConfigs.FirstOrDefault(x => x.att_key == "MobileNo");
                         sendgrid = db.ProjectConfigs.FirstOrDefault(x => x.att_key == "SendGridAPIKey");
+                        messagecount = db.ProjectConfigs.FirstOrDefault(x => x.att_key == "MessageCount");
 
                         sid.att_val = sidtb;
                         secretkey.att_val = secretkeytb;
                         mobile.att_val = mobiletb;
                         sendgrid.att_val = sendgridtb;
+                        messagecount.att_val = "0";
 
                         db.SaveChanges();
                         return RedirectToAction("Dashboard");
