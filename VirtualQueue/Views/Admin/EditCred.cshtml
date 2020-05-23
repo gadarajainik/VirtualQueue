@@ -18,8 +18,8 @@
 
     <div class="form-group">
         @Html.Label("SID : ", htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10" >
-            @Html.TextBox("sidtb", HttpContext.Current.Application["SID"].ToString(), new { @class = "form-control-lg", @style="width:500px"})
+        <div class="col-md-10">
+            @Html.TextBox("sidtb", HttpContext.Current.Application["SID"].ToString(), new { @class = "form-control-lg", @style = "width:500px" })
 
         </div>
     </div>
@@ -27,7 +27,7 @@
     <div class="form-group">
         @Html.Label("Secret Key :", htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.TextBox("secretkeytb", HttpContext.Current.Application["SecretKey"].ToString(),  new { @class = "form-control-lg", @style="width:500px"})
+            @Html.TextBox("secretkeytb", HttpContext.Current.Application["SecretKey"].ToString(), new { @class = "form-control-lg", @style = "width:500px" })
 
         </div>
     </div>
@@ -37,7 +37,17 @@
             Twilio Mobile No. :
         </b>
         <div class="col-md-10 ">
-            @Html.TextBox("mobiletb", HttpContext.Current.Application["MobileNo"].ToString(),  new { @class = "form-control-lg", @style="width:500px"})                       
+            @Html.TextBox("mobiletb", HttpContext.Current.Application["MobileNo"].ToString(), new { @class = "form-control-lg", @style = "width:500px" })
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <b class="control-label col-md-2">
+            Twilio SendGrid API Key 
+        </b>
+        <div class="col-md-10 ">
+            @Html.TextBox("sendgridtb", HttpContext.Current.Application["SendGridAPIKey"].ToString(), new { @class = "form-control-lg", @style = "width:500px" })
 
         </div>
     </div>

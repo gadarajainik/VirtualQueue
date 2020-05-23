@@ -18,7 +18,7 @@ namespace VirtualQueue.Models
         [Display(Name = "Email")]
         public string email { get; set; }
         [Display(Name = "Contact No.")]
-        [RegularExpression(@"^\+[0-9]{12}$",ErrorMessage ="Contact No. must include Country Code followed by 10digit number!")]
+        [RegularExpression(@"^\+[0-9]{11,}$",ErrorMessage ="Contact No. must include Country Code followed by 10digit number!")]
         public string contact_no { get; set; }
         [Display(Name = "Group Size")]
         [Required]

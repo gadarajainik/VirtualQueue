@@ -10,7 +10,9 @@
     <h4>@Model.guestName ( Booking ID : @Model.bookingID ) </h4>
     <hr />
     <dl class="dl-horizontal">
-        <br><br><dt>
+        <br>
+        <br>
+        <dt>
             @Html.DisplayNameFor(model => model.bookingID)
         </dt>
         <dd>
@@ -50,12 +52,12 @@
         </dd>
 
         @*<dt>
-            @Html.DisplayNameFor(model => model.persist)
-        </dt>
+                @Html.DisplayNameFor(model => model.persist)
+            </dt>
 
-        <dd>
-            @Html.DisplayFor(model => model.persist)
-        </dd>*@
+            <dd>
+                @Html.DisplayFor(model => model.persist)
+            </dd>*@
         <br>
         <dt>
             @Html.DisplayNameFor(model => model.isVIP)
@@ -72,18 +74,25 @@
         <dd>
             @Html.DisplayFor(model => model.status)
         </dd>
-        
-        <br><br>
-        
-            <dt>
-                
-            </dt>
-            <dd>
-                @Html.ActionLink("ADMIT ", "AdmitToPendingLists", "Guests", new { id = Model.bookingID }, new { @class = "btn btn-primary" })
-            </dd>
+
+        <br>
+        <br>
+
+        <dt>
+
+        </dt>
+        <dd>
+            @using (Html.BeginForm("AdmitToPendingLists", "Guests", new { id = Model.bookingID }, FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <input class="btn btn-primary" type="submit" value="ADMIT">
+                @*@Html.ActionLink("ADMIT ", "AdmitToPendingLists", "Guests", new { id = Model.bookingID }, new { @class = "btn btn-primary" })*@
+            }
+
+        </dd>
 
     </dl>
-</div >
+</div>
 <p style="margin-left:100px;">
 
     

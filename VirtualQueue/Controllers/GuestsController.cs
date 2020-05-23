@@ -11,13 +11,16 @@ using System.Web.Mvc;
 using VirtualQueue.Models;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
+using SendGrid;
+using SendGrid.Helpers.Mail;
+using System.Threading.Tasks;
 
 namespace VirtualQueue.Controllers
 {
     public class GuestsController : Controller
     {
         private VQContext db = new VQContext();
-
+        bool mailstatus = false;
         // GET: Guests
         public ActionResult Index()
         {
@@ -89,11 +92,11 @@ namespace VirtualQueue.Controllers
             }
             base.Dispose(disposing);
         }
-
-        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult AdmitToPendingLists(long id)
         {
-            bool mailstatus=false;
+            
             bool smsstatus=false;
             if( Session["User"]!=null)
             {
@@ -102,15 +105,10 @@ namespace VirtualQueue.Controllers
                 {
                     if (g.email != null && g.email != "")
                     {
-                        if (sendmail(g))
-                        {
-                            mailstatus = true;
-                        }
-                        else
-                        {
-                            ViewBag.errmsg = "Failed to send email.Try again.";
-                            return View("Error");
-                        }
+                        Debug.WriteLine("Before mail sent.");
+                        sendmail(g);
+                        //gayo k nai a kai rite check karisu?Apde response debug ma print karye ha okay
+                        Debug.WriteLine("After mail sent.");
                     }
                     if (g.contact_no!=null && g.contact_no!="")
                     {
@@ -122,18 +120,17 @@ namespace VirtualQueue.Controllers
                             c.att_val = HttpContext.Application["MessageCount"].ToString();
                             db.SaveChanges();
                         }
-                        else
-                        {
-                            ViewBag.errmsg = "Failed to send SMS.Try again.";
-                            return View("Error");
-                        }
-
                     }
                     if (mailstatus == true || smsstatus == true)
                     {
                         g.status = "Pending";
                         g.waiting = DateTime.Now;
                         db.SaveChanges();
+                    }
+                    else
+                    {
+                        ViewBag.errmsg = "Failed to send email or sms.Try again.";
+                        return View("Error");
                     }
                     //return RedirectToAction("PendingList");
                 }
@@ -187,47 +184,68 @@ namespace VirtualQueue.Controllers
 
 
         [NonAction]
-        public bool sendmail(Guest g)
+        public void sendmail(Guest g)
         {
-            var body = "<p><b> Dear {0}, </b></p><br><p>" +
-            "It's your turn to enter the " + HttpContext.Application["EventName"].ToString() +
-                    "! Please bring this message to the ticket booth. Enjoy the haunt!";
-            var message = new MailMessage();
-            string mailid = g.email;
+            //var body = "<p><b> Dear {0}, </b></p><br><p>" +
+            //"It's your turn to enter the " + HttpContext.Application["EventName"].ToString() +
+            //        "! Please bring this message to the ticket booth. Enjoy the haunt!";
+            //var message = new MailMessage();
+            //string mailid = g.email;
 
 
-            message.To.Add(new MailAddress(mailid));
+            //message.To.Add(new MailAddress(mailid));
 
 
-            message.From = new MailAddress(HttpContext.Application["Email"].ToString());  // replace with valid value
-            message.Subject = " Now its your turn for event " + HttpContext.Application["EventName"].ToString();
-            message.Body = string.Format(body, g.guestName);
-            message.IsBodyHtml = true;
+            //message.From = new MailAddress(HttpContext.Application["Email"].ToString());  // replace with valid value
+            //message.Subject = " Now its your turn for event " + HttpContext.Application["EventName"].ToString();
+            //message.Body = string.Format(body, g.guestName);
+            //message.IsBodyHtml = true;
 
-            using (var smtp = new SmtpClient())
+            //using (var smtp = new SmtpClient())
+            //{
+            //    var credential = new NetworkCredential
+            //    {
+            //        UserName = HttpContext.Application["Email"].ToString(),  // replace with valid value
+            //        Password = HttpContext.Application["EmailPass"].ToString()  // replace with valid value
+            //    };
+            //    smtp.Credentials = credential;
+            //    smtp.Host = "smtp.gmail.com";
+            //    smtp.Port = 587;
+            //    smtp.EnableSsl = true;
+            //    try
+            //    {
+            //        smtp.Send(message);
+            //        return true;
+            //    }
+            //    catch (Exception es)
+            //    {
+            //        Debug.WriteLine("ERROR:" + es.Message);
+            //        Debug.WriteLine("To:" + mailid + " From:" + HttpContext.Application["Email"].ToString() + " " + HttpContext.Application["EmailPass"].ToString());
+            //        return false;
+            //    }
+            //}
+
+
+            var client = new SendGridClient(HttpContext.Application["SendGridAPIKey"].ToString());
+            var from = new EmailAddress(HttpContext.Application["Email"].ToString(), HttpContext.Application["CompanyName"].ToString());
+            var subject = "Alert from "+HttpContext.Application["CompanyName"].ToString()+" (#"+g.bookingID.ToString()+" ) ";
+            var to = new EmailAddress(g.email, g.guestName);
+            var htmlContent = "";
+            var plainTextContent = "Dear "+ g.guestName+",\n" +
+                                "It's your turn to enter the " + HttpContext.Application["EventName"].ToString() +
+                                "! Please bring this message to the ticket booth. Enjoy the haunt!\nThank You";
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+            Debug.WriteLine("Before sending mail");
+            var response =client.SendEmailAsync(msg);
+            Debug.WriteLine("After sending mail");
+            Debug.WriteLine("OUTSIDE IF:" + response.Result.StatusCode.ToString());
+            if (response.Result.StatusCode.ToString() == "Accepted")
             {
-                var credential = new NetworkCredential
-                {
-                    UserName = HttpContext.Application["Email"].ToString(),  // replace with valid value
-                    Password = HttpContext.Application["EmailPass"].ToString()  // replace with valid value
-                };
-                smtp.Credentials = credential;
-                smtp.Host = "smtp.gmail.com";
-                smtp.Port = 587;
-                smtp.EnableSsl = true;
-                try
-                {
-                    smtp.Send(message);
-                    return true;
+                Debug.WriteLine("After sending mail inside message : "+response.Result.StatusCode.ToString());
+                //Debug.WriteLine("After sending mail inside if");
+                mailstatus = true;
             }
-            catch (Exception es)
-            {
-                Debug.WriteLine("ERROR:" + es.Message);
-                Debug.WriteLine("To:" + mailid + " From:" + HttpContext.Application["Email"].ToString() + " " + HttpContext.Application["EmailPass"].ToString());
-                return false;
-            }
-        }
-
+            Debug.WriteLine("After sending mail outside if");
         }
 
         public ActionResult PendingList()

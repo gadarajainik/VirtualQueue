@@ -129,13 +129,13 @@ namespace VirtualQueue.Controllers
         }
 
         [HttpPost]
-        public ActionResult EditCred(string sidtb, string secretkeytb, string mobiletb)
+        public ActionResult EditCred(string sidtb, string secretkeytb, string mobiletb, string sendgridtb)
         {
             if (Session["User"] != null)
             {
                 if (Session["User"].ToString() == "Admin")
                 {
-                    if( sidtb=="" || secretkeytb=="" ||  mobiletb=="" )
+                    if( sidtb=="" || secretkeytb=="" ||  mobiletb==""  || sendgridtb=="")
                     {
 
                         ModelState.AddModelError(string.Empty,"All the fields are mandatory!");
@@ -143,7 +143,7 @@ namespace VirtualQueue.Controllers
                     }
                     else
                     {
-                        if (mobiletb.Length < 10)
+                        if (mobiletb.Length < 12)
                         {
                             ModelState.AddModelError(string.Empty, "Enter valid mobile number along with the country code!");
                             return View();
@@ -151,15 +151,18 @@ namespace VirtualQueue.Controllers
                         HttpContext.Application["SID"] = sidtb;
                         HttpContext.Application["SecretKey"] = secretkeytb;
                         HttpContext.Application["MobileNo"] = mobiletb;
+                        HttpContext.Application["SendGridAPIKey"] = sendgridtb;
 
-                        ProjectConfig sid, secretkey, mobile;
+                        ProjectConfig sid, secretkey, mobile,sendgrid;
                         sid = db.ProjectConfigs.FirstOrDefault(x=>x.att_key=="SID");
                         secretkey = db.ProjectConfigs.FirstOrDefault(x => x.att_key == "SecretKey");
                         mobile = db.ProjectConfigs.FirstOrDefault(x => x.att_key == "MobileNo");
+                        sendgrid = db.ProjectConfigs.FirstOrDefault(x => x.att_key == "SendGridAPIKey");
 
                         sid.att_val = sidtb;
                         secretkey.att_val = secretkeytb;
                         mobile.att_val = mobiletb;
+                        sendgrid.att_val = sendgridtb;
 
                         db.SaveChanges();
                         return RedirectToAction("Dashboard");

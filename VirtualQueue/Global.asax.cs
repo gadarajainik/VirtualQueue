@@ -16,8 +16,8 @@ namespace VirtualQueue
         List<ProjectConfig> l = new List<ProjectConfig>();
         protected void Application_Start()
         {
-
-            l=ctx.ProjectConfigs.ToList();
+            
+            l =ctx.ProjectConfigs.ToList();
             foreach(ProjectConfig pc in l)
             {
                 Application[pc.att_key] = pc.att_val;
