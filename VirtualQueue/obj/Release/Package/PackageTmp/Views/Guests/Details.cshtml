@@ -95,7 +95,16 @@
 </div>
 <p style="margin-left:100px;">
 
-    
-</p>    <br><br>
-    @Html.ActionLink("Back to Waiting List", "Index")
+
+</p>
+<br>
+<br>
+@if (Session["User"] != null)
+{
+    Html.ActionLink("Back to Waiting List", "Index", "Guests");
+}
+else
+{
+    Html.ActionLink("Back to Waiting List", "Index", "Display");
+}
 

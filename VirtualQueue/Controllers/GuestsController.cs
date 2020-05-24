@@ -72,6 +72,7 @@ namespace VirtualQueue.Controllers
                 }
                 else
                 {
+
                     if (guest.email != null && guest.email != "")
                     {
                         Debug.WriteLine("Before mail sent.");
@@ -81,6 +82,8 @@ namespace VirtualQueue.Controllers
                     }
                     if (guest.contact_no != null && guest.contact_no != "")
                     {
+                        guest.contact_no =guest.contact_no;
+                        Debug.WriteLine("NUMBER:"+guest.contact_no);
                         if (sendSMS(guest, m) == true)
                         {
                             smsstatus = true;
@@ -98,7 +101,10 @@ namespace VirtualQueue.Controllers
                         guest.pending = DateTime.Now;
                         db.Guests.Add(guest);
                         db.SaveChanges();
-                        return RedirectToAction("Index");
+                        if (Session["User"] != null)
+                            return RedirectToAction("Index");
+                        else
+                            return RedirectToAction("Index","Display"); 
                     }
                     else
                     {
@@ -190,7 +196,7 @@ namespace VirtualQueue.Controllers
                 var message = MessageResource.Create(
                     body: m,
                     from: new Twilio.Types.PhoneNumber(HttpContext.Application["MobileNo"].ToString()),
-                    to: new Twilio.Types.PhoneNumber(g.contact_no)
+                    to: new Twilio.Types.PhoneNumber("+1"+g.contact_no)
                 );
                 
                 if(message.Status==MessageResource.StatusEnum.Failed ||
@@ -256,8 +262,8 @@ namespace VirtualQueue.Controllers
 
 
             var client = new SendGridClient(HttpContext.Application["SendGridAPIKey"].ToString());
-            var from = new EmailAddress(HttpContext.Application["Email"].ToString(), HttpContext.Application["CompanyName"].ToString());
-            var subject = "Alert from "+HttpContext.Application["CompanyName"].ToString();
+            var from = new EmailAddress(HttpContext.Application["Email"].ToString(), HttpContext.Application["EventName"].ToString());
+            var subject = "Alert from "+HttpContext.Application["EventName"].ToString();
             var to = new EmailAddress(g.email, g.guestName);
             var htmlContent = "";
             var plainTextContent =m;
@@ -311,18 +317,10 @@ namespace VirtualQueue.Controllers
                     }
                     if (mailstatus == true || smsstatus == true)
                     {
-                        if (g.persist == false)
-                        {
-                            db.Guests.Remove(g);
-
-                        }
-                        else
-                        {
+                        
                             g.status = "Arrived";
                             g.pending = DateTime.Now;
-
-                        }
-                        db.SaveChanges();
+                            db.SaveChanges();
                     }
                     else
                     {

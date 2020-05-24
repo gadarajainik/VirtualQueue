@@ -4,15 +4,28 @@
 }
 
 <div class="jumbotron" style="background-color:cadetblue;color:white;">
-    <h1>@HttpContext.Current.Application["CompanyName"]</h1>
+    <h1>@HttpContext.Current.Application["EventName"]</h1>
     
 </div>
+
+
+
+
+
 <center>
     <div class="row">
         <div class="col-lg-6 col-md-6">
-            <p>@Html.ActionLink("Add Guest", "Create", "Guests", null, new { @class = "btn btn-primary" ,@style="width:250px;"})</p>
+            <p>@Html.ActionLink("Add Guest", "Create", "Guests", null, new { @class = "btn btn-primary", @style = "width:250px;" })</p>
 
-            <p style="margin:50px;">@Html.ActionLink("Waiting Guest List", "Index", "Guests", null, new { @class = "btn btn-primary",@style="width:250px;" })</p>                 
+            @if (Session["User"] != null)
+            {
+                <p style="margin:50px;">@Html.ActionLink("Waiting Guest List", "Index", "Guests", null, new { @class = "btn btn-primary", @style = "width:250px;" })</p>
+            }
+            else
+            {
+                <p style="margin:50px;">@Html.ActionLink("Waiting Guest List", "Index", "Display", null, new { @class = "btn btn-primary", @style = "width:250px;" })</p>
+            }
+
         </div>
         <div class="col-lg-6 col-md-6">
             @if (Session["User"] != null)
