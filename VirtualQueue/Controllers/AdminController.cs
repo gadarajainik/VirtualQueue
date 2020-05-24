@@ -217,15 +217,16 @@ namespace VirtualQueue.Controllers
                     {
                         StringWriter sw = new StringWriter();
                         sw.WriteLine("\"BookingID\",\"Guest Name\",\"Email\",\"Contact No\",\"Group Size\"" +
-                            ",\"VIP\",\"Status\",\"Waiting Area Time\",\"Pending Area Time\"");
+                            ",\"VIP\",\"Status\",\"Mailing List\",\"Waiting Area Time\",\"Pending Area Time\"");
                         Response.ClearContent();
                         Response.AddHeader("content-disposition", "attachment;filename=GuestList_CSV.csv");
                         Response.ContentType = "text/csv";
                         foreach (Guest g in l)
                         {
                             sw.WriteLine(string.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\"" +
-                            ",\"{5}\",\"{6}\",\"{7}\",\"{8}\"",
+                            ",\"{5}\",\"{6}\",\"{7}\",\"{8}\",\"{9}\"",
                             g.bookingID, g.guestName, g.email, g.contact_no, g.groupSize, g.isVIP, g.status,
+                            g.persist,
                             g.waiting.Subtract(g.entry).ToString(), g.pending.Subtract(g.waiting).ToString()
                             )
                                 );

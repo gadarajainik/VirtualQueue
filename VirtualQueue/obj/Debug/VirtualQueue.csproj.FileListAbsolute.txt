@@ -175,3 +175,6 @@ C:\Users\gadar\OneDrive\Desktop\VirtualQueue\VirtualQueue\obj\Debug\VirtualQueue
 C:\Users\gadar\OneDrive\Desktop\VirtualQueue\VirtualQueue\bin\SendGrid.dll
 C:\Users\gadar\OneDrive\Desktop\VirtualQueue\VirtualQueue\bin\SendGrid.pdb
 C:\Users\gadar\OneDrive\Desktop\VirtualQueue\VirtualQueue\bin\SendGrid.xml
+C:\Users\admin\Desktop\UpWork\VirtualQueue\VirtualQueue\bin\SendGrid.dll
+C:\Users\admin\Desktop\UpWork\VirtualQueue\VirtualQueue\bin\SendGrid.pdb
+C:\Users\admin\Desktop\UpWork\VirtualQueue\VirtualQueue\bin\SendGrid.xml
